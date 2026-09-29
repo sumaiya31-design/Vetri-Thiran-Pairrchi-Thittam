@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EduGenie - AI Learning Assistant</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            color: white;
+            padding: 35px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 17px;
+            opacity: 0.95;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .tool-title {
+            font-size: 25px;
+            color: #1d4ed8;
+            margin-bottom: 8px;
+        }
+
+        .tool-description {
+            color: #6b7280;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin: 18px 0 8px;
+            color: #374151;
+        }
+
+        select,
+        input,
+        textarea {
+            width: 100%;
+            padding: 13px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 9px;
+            font-size: 16px;
+            font-family: inherit;
+            background: white;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        select:focus,
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .generate-btn {
+            width: 100%;
+            margin-top: 25px;
+            padding: 14px;
+            border: none;
+            border-radius: 9px;
+            background: #2563eb;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .generate-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .generate-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .result-box {
+            margin-top: 30px;
+            padding: 22px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #dbeafe;
+            display: none;
+        }
+
+        .result-box h3 {
+            color: #1d4ed8;
+            margin-bottom: 15px;
+        }
+
+        .result-content {
+            white-space: pre-wrap;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .error {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        .info-section {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .info-card .icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .info-card h3 {
+            color: #1d4ed8;
+            margin-bottom: 6px;
+        }
+
+        .info-card p {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 15px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        @media (max-width: 700px) {
+            header h1 {
+                font-size: 30px;
+            }
+
+            .container {
+                width: 95%;
+            }
+
+            .tool-card {
+                padding: 20px;
+            }
+
+            .info-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>🎓 EduGenie</h1>
+    <p>Google Gemini Powered Learning Assistant</p>
+</header>
+
+<div class="container">
+
+    <div class="tool-card">
+
+        <h2 class="tool-title">✨ AI Learning Tools</h2>
+
+        <p class="tool-description">
+            Choose a learning tool and let EduGenie help you learn with Gemini AI.
+        </p>
+
+        <!-- TOOL SELECTION -->
+        <label for="tool">Choose a learning tool</label>
+
+        <select id="tool" onchange="changeTool()">
+            <option value="qa">❓ Ask a Question</option>
+            <option value="explain">📚 Explain a Concept</option>
+            <option value="quiz">📝 Generate Quiz</option>
+            <option value="summarize">📄 Summarize Text</option>
+            <option value="learning">🎯 Recommend Learning Path</option>
+        </select>
+
+        <!-- DYNAMIC FORM -->
+        <div id="formArea"></div>
+
+        <button
+            id="generateButton"
+            class="generate-btn"
+            onclick="generateResponse()">
+            ✨ Generate
+        </button>
+
+        <!-- RESULT -->
+        <div id="resultBox" class="result-box">
+
+            <h3>🤖 EduGenie Result</h3>
+
+            <div id="resultContent" class="result-content"></div>
+
+        </div>
+
+    </div>
+
+    <!-- INFORMATION CARDS -->
+    <div class="info-section">
+
+        <div class="info-card">
+            <div class="icon">💡</div>
+            <h3>Learn</h3>
+            <p>Understand difficult concepts with simple explanations.</p>
+        </div>
+
+        <div class="info-card">
+            <div class="icon">🧠</div>
+            <h3>Practice</h3>
+            <p>Generate quizzes and test your knowledge.</p>
+        </div>
+
+        <div class="info-card">
+            <div class="icon">🚀</div>
+            <h3>Improve</h3>
+            <p>Get a personalized learning path for your goals.</p>
+        </div>
+
+    </div>
+
+</div>
+
+<footer>
+    EduGenie © 2026 | Powered by FastAPI and Google Gemini
+</footer>
+
+
+<script>
+
+    /*
+     * Change the form according to the selected tool
+     */
+    function changeTool() {
+
+        const tool = document.getElementById("tool").value;
+        const formArea = document.getElementById("formArea");
+
+        document.getElementById("resultBox").style.display = "none";
+
+        if (tool === "qa") {
+
+            formArea.innerHTML = `
+                <label for="question">Your Question</label>
+
+                <textarea
+                    id="question"
+                    placeholder="Example: What is photosynthesis?"
+                ></textarea>
+
+                <label for="level">Learning Level</label>
+
+                <select id="level">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+            `;
+        }
+
+        else if (tool === "explain") {
+
+            formArea.innerHTML = `
+                <label for="concept">Concept to Explain</label>
+
+                <textarea
+                    id="concept"
+                    placeholder="Example: Explain object-oriented programming"
+                ></textarea>
+            `;
+        }
+
+        else if (tool === "quiz") {
+
+            formArea.innerHTML = `
+                <label for="topic">Quiz Topic</label>
+
+                <input
+                    type="text"
+                    id="topic"
+                    placeholder="Example: Python Programming"
+                >
+
+                <label for="level">Learning Level</label>
+
+                <select id="level">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+
+                <label for="num_questions">Number of Questions</label>
+
+                <input
+                    type="number"
+                    id="num_questions"
+                    min="1"
+                    max="10"
+                    value="3"
+                >
+            `;
+        }
+
+        else if (tool === "summarize") {
+
+            formArea.innerHTML = `
+                <label for="text">Text to Summarize</label>
+
+                <textarea
+                    id="text"
+                    placeholder="Paste at least 20 characters of text here..."
+                ></textarea>
+
+                <label for="level">Learning Level</label>
+
+                <select id="level">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+            `;
+        }
+
+        else if (tool === "learning") {
+
+            formArea.innerHTML = `
+                <label for="topic">Learning Topic</label>
+
+                <input
+                    type="text"
+                    id="topic"
+                    placeholder="Example: Python Programming"
+                >
+
+                <label for="level">Learning Level</label>
+
+                <select id="level">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+
+                <label for="weeks">Number of Weeks</label>
+
+                <input
+                    type="number"
+                    id="weeks"
+                    min="1"
+                    max="12"
+                    value="4"
+                >
+
+                <label for="goal">Learning Goal</label>
+
+                <textarea
+                    id="goal"
+                    placeholder="Example: Learn Python fundamentals and build simple projects"
+                ></textarea>
+            `;
+        }
+    }
+
+
+    /*
+     * Send the form data to the correct FastAPI endpoint
+     */
+    async function generateResponse() {
+
+        const tool = document.getElementById("tool").value;
+
+        const button = document.getElementById("generateButton");
+        const resultBox = document.getElementById("resultBox");
+        const resultContent = document.getElementById("resultContent");
+
+        let endpoint = "";
+        let requestData = {};
+
+        /*
+         * ASK QUESTION
+         */
+        if (tool === "qa") {
+
+            const question = document.getElementById("question").value.trim();
+            const level = document.getElementById("level").value;
+
+            if (!question) {
+                alert("Please enter a question.");
+                return;
+            }
+
+            endpoint = "/qa";
+
+            requestData = {
+                question: question,
+                level: level
+            };
+        }
+
+
+        /*
+         * EXPLAIN CONCEPT
+         */
+        else if (tool === "explain") {
+
+            const concept = document.getElementById("concept").value.trim();
+
+            if (!concept) {
+                alert("Please enter a concept.");
+                return;
+            }
+
+            endpoint = "/explain";
+
+            requestData = {
+                concept: concept
+            };
+        }
+
+
+        /*
+         * GENERATE QUIZ
+         */
+        else if (tool === "quiz") {
+
+            const topic = document.getElementById("topic").value.trim();
+            const level = document.getElementById("level").value;
+            const numQuestions =
+                Number(document.getElementById("num_questions").value);
+
+            if (!topic) {
+                alert("Please enter a quiz topic.");
+                return;
+            }
+
+            endpoint = "/quiz";
+
+            requestData = {
+                topic: topic,
+                level: level,
+                num_questions: numQuestions
+            };
+        }
+
+
+        /*
+         * SUMMARIZE
+         */
+        else if (tool === "summarize") {
+
+            const text = document.getElementById("text").value.trim();
+            const level = document.getElementById("level").value;
+
+            if (text.length < 20) {
+                alert("Please enter at least 20 characters of text.");
+                return;
+            }
+
+            endpoint = "/summarize";
+
+            requestData = {
+                text: text,
+                level: level
+            };
+        }
+
+
+        /*
+         * LEARNING PATH
+         */
+        else if (tool === "learning") {
+
+            const topic = document.getElementById("topic").value.trim();
+            const level = document.getElementById("level").value;
+            const weeks = Number(document.getElementById("weeks").value);
+            const goal = document.getElementById("goal").value.trim();
+
+            if (!topic) {
+                alert("Please enter a learning topic.");
+                return;
+            }
+
+            if (!goal) {
+                alert("Please enter your learning goal.");
+                return;
+            }
+
+            endpoint = "/learn/recommendations";
+
+            requestData = {
+                topic: topic,
+                level: level,
+                weeks: weeks,
+                goal: goal
+            };
+        }
+
+
+        /*
+         * SHOW LOADING
+         */
+        resultBox.style.display = "block";
+        resultBox.classList.remove("error");
+
+        resultContent.innerHTML =
+            '<div class="loading">⏳ EduGenie is thinking...</div>';
+
+        button.disabled = true;
+        button.innerText = "⏳ Generating...";
+
+
+        /*
+         * CALL FASTAPI
+         */
+        try {
+
+            const response = await fetch(endpoint, {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify(requestData)
+
+            });
+
+
+            const data = await response.json();
+
+
+            /*
+             * HANDLE API ERROR
+             */
+            if (!response.ok) {
+
+                throw new Error(
+                    data.detail || "Something went wrong."
+                );
+            }
+
+
+            /*
+             * DISPLAY RESPONSE
+             */
+            let output = "";
+
+            if (typeof data === "string") {
+
+                output = data;
+
+            } else if (data.answer) {
+
+                output = data.answer;
+
+            } else if (data.explanation) {
+
+                output = data.explanation;
+
+            } else if (data.quiz) {
+
+                output = data.quiz;
+
+            } else if (data.summary) {
+
+                output = data.summary;
+
+            } else if (data.recommendations) {
+
+                output = data.recommendations;
+
+            } else {
+
+                output = JSON.stringify(data, null, 2);
+            }
+
+
+            resultContent.innerText = output;
+
+        }
+
+
+        /*
+         * HANDLE ERRORS
+         */
+        catch (error) {
+
+            resultBox.classList.add("error");
+
+            resultContent.innerText =
+                "❌ Error: " + error.message;
+        }
+
+
+        /*
+         * RESET BUTTON
+         */
+        finally {
+
+            button.disabled = false;
+            button.innerText = "✨ Generate";
+        }
+    }
+
+
+    /*
+     * Load the first form when page opens
+     */
+    window.onload = function () {
+        changeTool();
+    };
+
+</script>
+
+</body>
+</html>
